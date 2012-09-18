@@ -1,0 +1,30 @@
+{
+  "name": "monitor-client",
+  "private": true,
+  "description": "Sockets monitor client",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:doug-market/sockets-nodeKc-client.git"
+  },
+  "bin": {
+    "monitor-client": "./bin/monitor-client"
+  },
+  "author": "Doug Martin",
+  "main": "index.js",
+  "dependencies": {
+    "comb": "~0.1.8",
+    "request": "2.9.153",
+    "commander": "0.5.2",
+    "gofigure": "0.0.2"
+  },
+  "devDependencies": {
+    "it": "0.0.3"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "engines": {
+    "node": ">= 0.6.0 < 0.8"
+  }
+}

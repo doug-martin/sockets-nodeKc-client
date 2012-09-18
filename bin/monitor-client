@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+
+var path = require("path"),
+        comb = require("comb"),
+        monitorClient = require("../index"),
+        Client = monitorClient.Client;
+
+var getConfig = function () {
+    var ret = {};
+    if (program.configuration) {
+        ret = require(program.configuration);
+    }
+    return ret;
+};
+
+var list = function (val) {
+    return val.split(',');
+}
+
+var execute = function (action, services) {
+    comb.serial(services.map(function (service) {
+        return function () {
+            var client = new Client(getConfig());
+            var resolved = service;
+            if (path.existsSync(service)) {
+                resolved = path.resolve(service);
+            }
+            var ret = new comb.Promise();
+            client[action](resolved, getConfig()).then(
+                    function (res) {
+                        console.log(JSON.stringify(res, null, 4));
+                    },
+                    function (err) {
+                        console.error(err);
+                    }).both(comb.hitch(ret, "callback"));
+            return ret;
+        }
+    })).both(function () {
+                process.exit();
+            });
+};
+
+var program = require('commander');
+
+program
+        .version('0.0.1')
+        .option('-c, --configuration [path]', 'configuration file')
+        .on("actions", function () {
+            comb.when(monitorClient.actions(), function (actions) {
+                console.log("Actions : \n\t%s", actions.actions.join("\n\t"));
+                process.exit();
+            });
+        });
+
+program
+        .command("start <services>", list)
+        .description('start a service')
+        .action(function (args) {
+            args = list(args);
+            execute("start", args);
+        });
+
+program
+        .command("stop <services>")
+        .description('stop a service')
+        .action(function (args) {
+            args = list(args);
+            execute("stop", args);
+        });
+
+program
+        .command("restart <services>")
+        .description('restart a service')
+        .action(function (args) {
+            args = list(args);
+            execute("restart", args);
+        });
+
+program
+        .command("status [service]")
+        .description('get the status of a service')
+        .action(function (args) {
+            args = list(args);
+            execute("status", args);
+        });
+
+program
+        .command("list")
+        .description('list of running services')
+        .action(function (args) {
+            execute("list", ["list"]);
+        });
+
+program
+        .command("services")
+        .description('show avaiable services')
+        .action(function () {
+            execute("services", ["services"]);
+        });
+
+program
+        .command("logs")
+        .description('show monitored logs ')
+        .action(function () {
+            execute("logs", ["logs"]);
+        });
+
+program.parse(process.argv);
+
+
+
+
+
+
